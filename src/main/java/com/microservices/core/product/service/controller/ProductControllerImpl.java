@@ -1,7 +1,7 @@
-package microservices.core.product.service.controller;
+package com.microservices.core.product.service.controller;
 
 import com.microservices.core.util.http.ServiceUtil;
-import microservices.core.product.service.dto.ProductDTO;
+import com.microservices.core.product.service.dto.ProductDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
