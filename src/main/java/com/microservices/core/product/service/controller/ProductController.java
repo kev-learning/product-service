@@ -14,12 +14,12 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
-    @GetMapping(value = "/product/{productId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/product/{productId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ProductDTO> getProductById(@PathVariable(name = "productId") Long productId) {
         return ResponseEntity.ok(productService.getProduct(productId));
     }
 
-    @PostMapping(value = "/product/", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/product/", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ProductDTO> createProduct(@RequestBody ProductDTO productDTO) {
         return new ResponseEntity<>(productService.createProduct(productDTO), HttpStatus.CREATED);
     }

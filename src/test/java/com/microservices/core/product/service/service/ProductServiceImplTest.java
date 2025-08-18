@@ -44,7 +44,9 @@ class ProductServiceImplTest {
     void createProductTest() {
         Mockito.when(productMapper.DTOtoEntity(Mockito.any(ProductDTO.class))).thenReturn(buildProduct());
         Mockito.when(productRepository.save(Mockito.any(Product.class))).thenReturn(buildProduct());
-        Mockito.when(productMapper.entityToDTO(Mockito.any(Product.class))).thenReturn(buildProductDTO());
+        Mockito.when(productMapper.entityToDTO(Mockito.any(Product.class), Mockito.anyString())).thenReturn(buildProductDTO());
+
+        Mockito.when(serviceUtil.getAddress()).thenReturn("Address");
 
         ProductDTO productDTO = productService.createProduct(buildProductDTO());
 
@@ -54,7 +56,9 @@ class ProductServiceImplTest {
     @Test
     void getProductTest() {
         Mockito.when(productRepository.findByProductId(Mockito.anyLong())).thenReturn(Optional.of(buildProduct()));
-        Mockito.when(productMapper.entityToDTO(Mockito.any(Product.class))).thenReturn(buildProductDTO());
+        Mockito.when(productMapper.entityToDTO(Mockito.any(Product.class), Mockito.anyString())).thenReturn(buildProductDTO());
+
+        Mockito.when(serviceUtil.getAddress()).thenReturn("Address");
 
         ProductDTO productDTO = productService.getProduct(COMMON_ID);
 

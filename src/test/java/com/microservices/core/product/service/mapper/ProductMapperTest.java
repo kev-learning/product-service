@@ -22,12 +22,12 @@ class ProductMapperTest {
         product.setName("NAME");
         product.setWeight(COMMON_ID.intValue());
 
-        ProductDTO productDTO = productMapper.entityToDTO(product);
+        ProductDTO productDTO = productMapper.entityToDTO(product, "Address");
 
         assertEquals(product.getProductId(), productDTO.getProductId());
         assertEquals(product.getName(), productDTO.getName());
         assertEquals(product.getWeight(), productDTO.getWeight());
-        assertNull(productDTO.getServiceAddress());
+        assertEquals("Address", productDTO.getServiceAddress());
     }
 
     @Test

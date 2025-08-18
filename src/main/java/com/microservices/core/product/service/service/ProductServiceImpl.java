@@ -34,7 +34,7 @@ public class ProductServiceImpl implements ProductService{
             product = productRepository.save(product);
 
             log.debug("Created new product: {}", product);
-            return productMapper.entityToDTO(product);
+            return productMapper.entityToDTO(product, serviceUtil.getAddress());
         }catch(DuplicateKeyException dke) {
             throw new InvalidInputException("Duplicate key for product ID: " + productDTO.getProductId());
         }
@@ -47,8 +47,8 @@ public class ProductServiceImpl implements ProductService{
             throw new InvalidInputException("Invalid product ID: " + productId);
         }
 
-        Product product = productRepository.findByProductId(productId).orElseThrow(() -> new NotFoundException("Product not found for product ID: {}" + productId));
-        ProductDTO productDTO = productMapper.entityToDTO(product);
+        Product product = productRepository.findByProductId(productId).orElseThrow(() -> new NotFoundException("Product not found for product ID: " + productId));
+        ProductDTO productDTO = productMapper.entityToDTO(product, serviceUtil.getAddress());
         productDTO.setServiceAddress(serviceUtil.getAddress());
 
         log.debug("Found product: {}", productDTO);

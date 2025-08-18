@@ -10,9 +10,9 @@ import org.mapstruct.Mappings;
 public interface ProductMapper {
 
     @Mappings({
-            @Mapping(target = "serviceAddress", ignore = true)
+            @Mapping(target = "serviceAddress", source = "address")
     })
-    ProductDTO entityToDTO(Product product);
+    ProductDTO entityToDTO(Product product, String address);
 
     @Mappings({
             @Mapping(target = "id", ignore = true),
