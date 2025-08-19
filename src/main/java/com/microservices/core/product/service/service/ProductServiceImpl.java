@@ -11,8 +11,10 @@ import com.mongodb.DuplicateKeyException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.util.Objects;
+import java.util.logging.Level;
 
 @Slf4j
 @Service
@@ -28,42 +30,46 @@ public class ProductServiceImpl implements ProductService{
     private ProductMapper productMapper;
 
     @Override
-    public ProductDTO createProduct(ProductDTO productDTO) {
+    public Mono<ProductDTO> createProduct(ProductDTO productDTO) {
         try {
             Product product = productMapper.DTOtoEntity(productDTO);
-            product = productRepository.save(product);
+            Mono<ProductDTO> createdProduct = productRepository.save(product)
+                    .log(log.getName(), Level.FINE)
+                    .onErrorMap(DuplicateKeyException.class, ex -> new InvalidInputException("Duplicate key for Product ID: " + productDTO.getProductId()))
+                    .map(entity -> productMapper.entityToDTO(entity, serviceUtil.getAddress()));
 
-            log.debug("Created new product: {}", product);
-            return productMapper.entityToDTO(product, serviceUtil.getAddress());
+            log.debug("Created new product: {}", createdProduct);
+            return createdProduct;
         }catch(DuplicateKeyException dke) {
             throw new InvalidInputException("Duplicate key for product ID: " + productDTO.getProductId());
         }
     }
 
     @Override
-    public ProductDTO getProduct(Long productId) {
+    public Mono<ProductDTO> getProduct(Long productId) {
 
         if(Objects.isNull(productId) || productId < 1) {
             throw new InvalidInputException("Invalid product ID: " + productId);
         }
 
-        Product product = productRepository.findByProductId(productId).orElseThrow(() -> new NotFoundException("Product not found for product ID: " + productId));
-        ProductDTO productDTO = productMapper.entityToDTO(product, serviceUtil.getAddress());
-        productDTO.setServiceAddress(serviceUtil.getAddress());
+        Mono<ProductDTO> product = productRepository.findByProductId(productId)
+                .switchIfEmpty(Mono.error(new NotFoundException("Product not found for product ID: " + productId)))
+                .log(log.getName(), Level.FINE)
+                .map(entity -> productMapper.entityToDTO(entity, serviceUtil.getAddress()));
 
-        log.debug("Found product: {}", productDTO);
+        log.debug("Found product: {}", product);
 
-        return productDTO;
+        return product;
     }
 
     @Override
-    public void deleteProduct(Long productId) {
+    public Mono<Void> deleteProduct(Long productId) {
 
         if(Objects.isNull(productId) || productId < 1) {
             throw new InvalidInputException("Invalid product ID: " + productId);
         }
 
         log.debug("Delete product with product ID: {}", productId);
-        productRepository.findByProductId(productId).ifPresent(productRepository::delete);
+        return productRepository.findByProductId(productId).log(log.getName(), Level.FINE).map(productRepository::delete).flatMap(e -> e);
     }
 }

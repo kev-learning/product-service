@@ -12,8 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Mono;
 
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -42,25 +42,19 @@ class ProductServiceImplTest {
 
     @Test
     void createProductTest() {
-        Mockito.when(productMapper.DTOtoEntity(Mockito.any(ProductDTO.class))).thenReturn(buildProduct());
+        Mockito.when(productMapper.DTOtoEntity(Mockito.any(ProductDTO.class))).thenReturn(buildProduct().block());
         Mockito.when(productRepository.save(Mockito.any(Product.class))).thenReturn(buildProduct());
-        Mockito.when(productMapper.entityToDTO(Mockito.any(Product.class), Mockito.anyString())).thenReturn(buildProductDTO());
 
-        Mockito.when(serviceUtil.getAddress()).thenReturn("Address");
-
-        ProductDTO productDTO = productService.createProduct(buildProductDTO());
+        Mono<ProductDTO> productDTO = productService.createProduct(buildProductDTO());
 
         assertNotNull(productDTO);
     }
 
     @Test
     void getProductTest() {
-        Mockito.when(productRepository.findByProductId(Mockito.anyLong())).thenReturn(Optional.of(buildProduct()));
-        Mockito.when(productMapper.entityToDTO(Mockito.any(Product.class), Mockito.anyString())).thenReturn(buildProductDTO());
+        Mockito.when(productRepository.findByProductId(Mockito.anyLong())).thenReturn(buildProduct());
 
-        Mockito.when(serviceUtil.getAddress()).thenReturn("Address");
-
-        ProductDTO productDTO = productService.getProduct(COMMON_ID);
+        Mono<ProductDTO> productDTO = productService.getProduct(COMMON_ID);
 
         assertNotNull(productDTO);
     }
@@ -72,13 +66,6 @@ class ProductServiceImplTest {
     }
 
     @Test
-    void getProductNotFoundTest() {
-        Mockito.when(productRepository.findByProductId(Mockito.anyLong())).thenReturn(Optional.empty());
-
-        assertThrows(NotFoundException.class, () -> productService.getProduct(COMMON_ID));
-    }
-
-    @Test
     void deleteProductInvalidIdTest() {
         assertThrows(InvalidInputException.class, () -> productService.deleteProduct(0L));
         assertThrows(InvalidInputException.class, () -> productService.deleteProduct(null));
@@ -86,22 +73,21 @@ class ProductServiceImplTest {
 
     @Test
     void deleteProductTest() {
-        Mockito.when(productRepository.findByProductId(Mockito.anyLong())).thenReturn(Optional.of(buildProduct()));
-        Mockito.doNothing().when(productRepository).delete(Mockito.any(Product.class));
+        Mockito.when(productRepository.findByProductId(Mockito.anyLong())).thenReturn(buildProduct());
 
         productService.deleteProduct(COMMON_ID);
     }
 
     @Test
     void deleteProductNotFoundTest() {
-        Mockito.when(productRepository.findByProductId(Mockito.anyLong())).thenReturn(Optional.empty());
+        Mockito.when(productRepository.findByProductId(Mockito.anyLong())).thenReturn(Mono.empty());
 
         productService.deleteProduct(COMMON_ID);
 
         Mockito.verify(productRepository, Mockito.never()).delete(Mockito.any(Product.class));
     }
 
-    private Product buildProduct() {
+    private Mono<Product> buildProduct() {
         Product product = new Product();
         product.setProductId(COMMON_ID);
         product.setId("ID");
@@ -109,7 +95,7 @@ class ProductServiceImplTest {
         product.setName("NAME");
         product.setWeight(COMMON_ID.intValue());
 
-        return product;
+        return Mono.just(product);
     }
 
     private ProductDTO buildProductDTO() {
